@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Bot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 400px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .chat {
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bot {
+            align-self: flex-start;
+            background: #e0e7ff;
+            padding: 10px 15px;
+            border-radius: 10px;
+            color: #333;
+        }
+
+        .user {
+            align-self: flex-end;
+            background: #d4f8e8;
+            padding: 10px 15px;
+            border-radius: 10px;
+            color: #333;
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .option {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            background: #f9f9f9;
+        }
+
+        .option img {
+            width: 100%;
+            max-height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input, button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button {
+            background: #4caf50;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+				.typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 10px;
+        color: #777;
+        font-size: 14px;
+    }
+
+    .dot {
+        width: 6px;
+        height: 6px;
+        background: #777;
+        border-radius: 50%;
+        animation: blink 1.5s infinite;
+    }
+
+    .dot:nth-child(2) {
+        animation-delay: 0.3s;
+    }
+
+    .dot:nth-child(3) {
+        animation-delay: 0.6s;
+    }
+
+    @keyframes blink {
+        0%, 20% {
+            opacity: 0;
+        }
+        40% {
+            opacity: 1;
+        }
+        100% {
+            opacity: 0;
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat" id="chat"></div>
+        <div class="typing-indicator" id="typing-indicator">
+            Катя печатает <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+    </div>
+
+    <script>
+        const chat = document.getElementById('chat');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        function addMessage(text, sender = 'bot', options = null) {
+            typingIndicator.style.display = 'none';
+            const message = document.createElement('div');
+            message.classList.add('message', sender);
+
+            const bubble = document.createElement('div');
+            bubble.classList.add(sender);
+            bubble.textContent = text;
+            message.appendChild(bubble);
+
+            if (options) {
+                const optionsContainer = document.createElement('div');
+                optionsContainer.classList.add('options');
+
+                options.forEach(option => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.classList.add('option');
+
+                    if (option.image) {
+                        const img = document.createElement('img');
+                        img.src = option.image;
+                        optionDiv.appendChild(img);
+                    }
+
+                    const textDiv = document.createElement('div');
+                    textDiv.textContent = option.text;
+                    optionDiv.appendChild(textDiv);
+
+                    optionDiv.onclick = () => {
+                        addMessage(option.text, 'user');
+                        setTimeout(() => {
+                            typingIndicator.style.display = 'block';
+                            setTimeout(option.action, 2000);
+                        }, 500);
+                    };
+                    optionsContainer.appendChild(optionDiv);
+                });
+
+                message.appendChild(optionsContainer);
+            }
+
+            chat.appendChild(message);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function askPaymentMethod() {
+            addMessage('Как будете оплачивать?', 'bot', [
+                { text: 'Наличные', action: askContactDetails },
+                { text: 'Кредит', action: askContactDetails },
+                { text: 'Трейд-ин', action: askContactDetails }
+            ]);
+        }
+
+        function askContactDetails() {
+            addMessage('Специалист свяжется с вами. Введите данные ниже:', 'bot');
+
+            const inputSection = document.createElement('div');
+            inputSection.classList.add('input-section');
+
+            const nameInput = document.createElement('input');
+            nameInput.placeholder = 'Введите имя';
+            inputSection.appendChild(nameInput);
+
+            const phoneInput = document.createElement('input');
+            phoneInput.placeholder = 'Введите телефон';
+            inputSection.appendChild(phoneInput);
+
+            const submitButton = document.createElement('button');
+            submitButton.textContent = 'Отправить';
+            submitButton.onclick = () => {
+                addMessage(`Спасибо, ${nameInput.value}! Наш специалист свяжется с вами.`, 'bot');
+                inputSection.remove();
+            };
+
+            inputSection.appendChild(submitButton);
+            chat.appendChild(inputSection);
+        }
+
+        addMessage('Добрый день! Выберите машину:', 'bot', [
+            { text: 'Машина 1', image: 'one.jpg', action: askPaymentMethod },
+            { text: 'Машина 2', image: 'two.jpg', action: askPaymentMethod },
+            { text: 'Машина 3', image: 'three.png', action: askPaymentMethod }
+        ]);
+    </script>
+</body>
+</html>
+
